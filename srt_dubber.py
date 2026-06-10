@@ -6,7 +6,7 @@ from pydub import AudioSegment
 # SETTINGS
 # ==========================================
 
-SRT_FILE = "video.srt"
+SRT_FILE = "input.srt"
 REFERENCE_AUDIO = "reference.mp3"
 OUTPUT_FILE = "dubbed.wav"
 
