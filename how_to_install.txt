@@ -8,6 +8,7 @@
 !pip install srt
 !pip install pydub
 !pip install soundfile
+!pip install gradio
 
 # load the model
 
