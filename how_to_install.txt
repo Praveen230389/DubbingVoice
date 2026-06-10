@@ -1,3 +1,7 @@
+# install your git repo first dubbingvoices
+
+!pip -q install git+https://github.com/Praveen230389/DubbingVoice.git
+
 # install these
 
 !pip install omnivoice
@@ -11,18 +15,12 @@ from omnivoice import OmniVoice
 import torch
 
 model = OmniVoice.from_pretrained(
-    "k2-fsa/OmniVoice",
+    "Praveen230389/OmniVoice",
     device_map="cuda:0",
     dtype=torch.float16
 )
 
-  # upload files
-
-  from google.colab import files
-
-  files.upload()
-
-  # then finally run script
+# then finally run script
 
   exec(open("srt_dubber.py").read())
 
