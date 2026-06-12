@@ -16,7 +16,7 @@ from omnivoice import OmniVoice
 import torch
 
 model = OmniVoice.from_pretrained(
-    "Praveen230389/OmniVoice",
+    "k2-fsa/OmniVoice",
     device_map="cuda:0",
     dtype=torch.float16
 )
