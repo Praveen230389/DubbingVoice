@@ -1,6 +1,6 @@
 # install your git repo first dubbingvoices
 
-!pip -q install git+https://github.com/Praveen230389/DubbingVoice.git
+!git clone https://github.com/Praveen230389/DubbingVoice.git
 
 # install these
 
@@ -23,7 +23,7 @@ model = OmniVoice.from_pretrained(
 
 # then finally run script
 
-  exec(open("srt_dubber.py").read())
+exec(open("DubbingVoice/srt_dubber.py").read())
 
 # if running gradio
 
