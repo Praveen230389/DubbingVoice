@@ -1,0 +1,14 @@
+REFERENCE_LANGUAGE = "English"
+
+TARGET_LANGUAGE = "Hindi"
+
+SAFETY_MARGIN = 0.20
+
+SPEED_STEPS = [
+1.0,
+1.2,
+1.4,
+1.6,
+1.8,
+2.0
+]
