@@ -1,5 +1,6 @@
 # install your git repo first dubbingvoices
 
+%cd /content
 !git clone https://github.com/Praveen230389/DubbingVoice.git
 
 # install these
@@ -10,20 +11,10 @@
 !pip install soundfile
 !pip install gradio
 
-# load the model
+finally run script
 
-from omnivoice import OmniVoice
-import torch
-
-model = OmniVoice.from_pretrained(
-    "k2-fsa/OmniVoice",
-    device_map="cuda:0",
-    dtype=torch.float16
-)
-
-# then finally run script
-
-exec(open("DubbingVoice/srt_dubber1.py").read())
+%cd /content
+!python3 DubbingVoice/srt_dubber1.py
 
 # if running gradio
 
