@@ -3,6 +3,15 @@ import srt
 import soundfile as sf
 from pydub import AudioSegment
 
+from omnivoice import OmniVoice
+import torch
+
+model = OmniVoice.from_pretrained(
+    "k2-fsa/OmniVoice",
+    device_map="cuda:0",
+    dtype=torch.float16
+)
+
 # =================================================
 # SAFE IMPORT FOR COLAB EXEC() CONTEXT
 # =================================================
