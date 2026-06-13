@@ -1,118 +1,101 @@
+import os
 import srt
 import soundfile as sf
-
 from pydub import AudioSegment
 
-from language_config import (
-    REFERENCE_LANGUAGE,
-    TARGET_LANGUAGE,
-    SAFETY_MARGIN,
-    SPEED_STEPS
-)
+# =================================================
+# SAFE IMPORT FOR COLAB EXEC() CONTEXT
+# =================================================
+
+try:
+    from DubbingVoice.language_config import (
+        REFERENCE_LANGUAGE,
+        TARGET_LANGUAGE,
+        SAFETY_MARGIN,
+        SPEED_STEPS
+    )
+except:
+    from language_config import (
+        REFERENCE_LANGUAGE,
+        TARGET_LANGUAGE,
+        SAFETY_MARGIN,
+        SPEED_STEPS
+    )
+
+# =================================================
+# MODEL IMPORT (IMPORTANT FIX)
+# =================================================
+
+# You MUST already have OmniVoice loaded somewhere.
+# This prevents hard crash.
+try:
+    from omnivoice import model
+except:
+    model = None
+    print("WARNING: OmniVoice model not imported. Make sure model is loaded before running.")
 
 # ==========================================
 # SETTINGS
 # ==========================================
 
 SRT_FILE = "input.srt"
-
 REFERENCE_AUDIO = "reference.mp3"
-
 OUTPUT_FILE = "dubbed.wav"
 
 # ==========================================
 # LOAD SRT
 # ==========================================
 
-with open(
-    SRT_FILE,
-    "r",
-    encoding="utf-8"
-) as f:
+with open(SRT_FILE, "r", encoding="utf-8") as f:
+    subtitles = list(srt.parse(f.read()))
 
-    subtitles = list(
-        srt.parse(
-            f.read()
-        )
-    )
-
-print(
-    f"Found {len(subtitles)} subtitles"
-)
+print(f"Found {len(subtitles)} subtitles")
 
 # ==========================================
 # BUILD FINAL AUDIO
 # ==========================================
 
-final_audio = AudioSegment.silent(
-    duration=0
-)
-
+final_audio = AudioSegment.silent(duration=0)
 current_position_ms = 0
 
 for idx, sub in enumerate(subtitles):
 
-    print(
-        "\n" + "=" * 60
-    )
-
-    print(
-        f"Subtitle #{idx+1}"
-    )
+    print("\n" + "=" * 60)
+    print(f"Subtitle #{idx+1}")
 
     text = sub.content.strip()
-
-    print(
-        "Text:",
-        text
-    )
+    print("Text:", text)
 
     # ======================================
     # SRT WINDOW
     # ======================================
 
-    window_duration = (
-        sub.end.total_seconds()
-        - sub.start.total_seconds()
-    )
+    window_duration = sub.end.total_seconds() - sub.start.total_seconds()
 
-    target_duration = (
-        window_duration
-        - SAFETY_MARGIN
-    )
+    target_duration = window_duration - SAFETY_MARGIN
+    target_duration = max(0.5, target_duration)
 
-    if target_duration < 0.5:
+    print("SRT Window:", round(window_duration, 2), "sec")
+    print("Target:", round(target_duration, 2), "sec")
 
-        target_duration = 0.5
+    # ======================================
+    # VALIDATION
+    # ======================================
 
-    print(
-        "SRT Window:",
-        round(window_duration, 2),
-        "sec"
-    )
-
-    print(
-        "Target:",
-        round(target_duration, 2),
-        "sec"
-    )
+    if model is None:
+        raise RuntimeError("OmniVoice model is not loaded. Import/initialize it before running this script.")
 
     # ======================================
     # TRY SPEED LEVELS
     # ======================================
 
     selected_segment = None
-
     selected_duration = None
-
     selected_speed = None
 
     for speed in SPEED_STEPS:
 
-        print(
-            "Trying speed:",
-            speed
-        )
+        print("Trying speed:", speed)
 
         audio = model.generate(
             text=text,
@@ -121,57 +104,30 @@ for idx, sub in enumerate(subtitles):
             speed=speed
         )
 
-        temp_file = (
-            f"temp_{idx}.wav"
-        )
+        temp_file = f"temp_{idx}_{speed}.wav"
 
-        sf.write(
-            temp_file,
-            audio[0],
-            24000
-        )
+        sf.write(temp_file, audio[0], 24000)
 
-        segment = AudioSegment.from_wav(
-            temp_file
-        )
+        segment = AudioSegment.from_wav(temp_file)
 
-        generated_duration = (
-            len(segment)
-            / 1000
-        )
+        generated_duration = len(segment) / 1000
 
-        print(
-            "Generated:",
-            round(
-                generated_duration,
-                2
-            ),
-            "sec"
-        )
+        print("Generated:", round(generated_duration, 2), "sec")
 
         if generated_duration <= target_duration:
 
             selected_segment = segment
-
             selected_duration = generated_duration
-
             selected_speed = speed
-
             break
 
     # ======================================
-    # IF NOTHING FITS
+    # FALLBACK: FORCE DURATION MODE
     # ======================================
 
     if selected_segment is None:
 
-        print(
-            "Nothing fit."
-        )
-
-        print(
-            "Using duration control."
-        )
+        print("Nothing fit. Using duration control.")
 
         audio = model.generate(
             text=text,
@@ -180,109 +136,45 @@ for idx, sub in enumerate(subtitles):
             duration=target_duration
         )
 
-        temp_file = (
-            f"temp_{idx}.wav"
-        )
+        temp_file = f"temp_{idx}_duration.wav"
 
-        sf.write(
-            temp_file,
-            audio[0],
-            24000
-        )
+        sf.write(temp_file, audio[0], 24000)
 
-        selected_segment = (
-            AudioSegment.from_wav(
-                temp_file
-            )
-        )
-
-        selected_duration = (
-            len(selected_segment)
-            / 1000
-        )
-
+        selected_segment = AudioSegment.from_wav(temp_file)
+        selected_duration = len(selected_segment) / 1000
         selected_speed = "duration"
 
-    print(
-        "Selected:",
-        selected_speed
-    )
-
-    print(
-        "Final duration:",
-        round(
-            selected_duration,
-            2
-        ),
-        "sec"
-    )
+    print("Selected:", selected_speed)
+    print("Final duration:", round(selected_duration, 2), "sec")
 
     # ======================================
-    # INSERT SILENCE
+    # INSERT SILENCE (TIMING ALIGNMENT CORE)
     # ======================================
 
-    start_ms = int(
-        sub.start.total_seconds()
-        * 1000
-    )
+    start_ms = int(sub.start.total_seconds() * 1000)
 
     if start_ms > current_position_ms:
 
-        silence_duration = (
-            start_ms
-            - current_position_ms
-        )
+        silence_duration = start_ms - current_position_ms
 
-        print(
-            "Adding silence:",
-            round(
-                silence_duration / 1000,
-                2
-            ),
-            "sec"
-        )
+        print("Adding silence:", round(silence_duration / 1000, 2), "sec")
 
-        final_audio += (
-            AudioSegment.silent(
-                duration=silence_duration
-            )
-        )
+        final_audio += AudioSegment.silent(duration=silence_duration)
 
     # ======================================
     # APPEND AUDIO
     # ======================================
 
     final_audio += selected_segment
-
-    current_position_ms = (
-        len(final_audio)
-    )
+    current_position_ms = len(final_audio)
 
 # ==========================================
 # EXPORT
 # ==========================================
 
-final_audio.export(
-    OUTPUT_FILE,
-    format="wav"
-)
+final_audio.export(OUTPUT_FILE, format="wav")
 
-print(
-    "\n" + "=" * 60
-)
-
+print("\n" + "=" * 60)
 print("DONE")
-
-print(
-    "Created:",
-    OUTPUT_FILE
-)
-
-print(
-    "Final Duration:",
-    round(
-        len(final_audio) / 1000,
-        2
-    ),
-    "sec"
-)
+print("Created:", OUTPUT_FILE)
+print("Final Duration:", round(len(final_audio) / 1000, 2), "sec")
