@@ -23,7 +23,7 @@ model = OmniVoice.from_pretrained(
 
 # then finally run script
 
-exec(open("DubbingVoice/srt_dubber.py").read())
+exec(open("DubbingVoice/srt_dubber1.py").read())
 
 # if running gradio
 
