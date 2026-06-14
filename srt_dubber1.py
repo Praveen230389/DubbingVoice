@@ -1,4 +1,3 @@
-```python
 import os
 import argparse
 import srt
@@ -208,4 +207,3 @@ for job in jobs:
     )
 
 print("\nALL JOBS COMPLETED")
-```
