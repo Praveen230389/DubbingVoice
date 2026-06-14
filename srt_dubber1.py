@@ -197,7 +197,7 @@ for job in jobs:
     if not job:
         continue
 
-    srt_file, ref_audio, output_file, language = job.split(",")
+    srt_file, ref_audio, language, output_file = job.split(",")
 
     process_job(
         srt_file.strip(),
