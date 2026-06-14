@@ -26,12 +26,4 @@ or
 
 final run command
 
-!python srt_dubber1.py --jobs "
-english.srt,hindi.mp3,Hindi,hindi.wav;
-english.srt,japanese.wav,Japanese,japanese.wav;
-english.srt,arabic.mp3,Arabic,arabic.wav;
-english.srt,french.mp3,French,french.wav;
-english.srt,german.mp3,German,german.wav
-"
-
-  
+!python DubbingVoice/srt_dubber1.py --jobs "CICD.srt,reference.mp3,Hindi,CICD.wav;devops.srt,output007.wav,Hindi,devops.wav;devsecops.srt,reference.mp3,Hindi,devsecops.wav;allservices.srt,reference.mp3,Hindi,allservices.wav"
