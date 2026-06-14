@@ -24,4 +24,14 @@ or
 
 !python app.py
 
+final run command
+
+!python srt_dubber1.py --jobs "
+english.srt,hindi.mp3,Hindi,hindi.wav;
+english.srt,japanese.wav,Japanese,japanese.wav;
+english.srt,arabic.mp3,Arabic,arabic.wav;
+english.srt,french.mp3,French,french.wav;
+english.srt,german.mp3,German,german.wav
+"
+
   
